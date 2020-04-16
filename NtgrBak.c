@@ -8,14 +8,6 @@
  ============================================================================
  */
 
-/*
- * -i Input file
- * -o Output file
- * -x Extract NVRAM image
- * -e Encrypt NVRAM image
- * -d Decrypt
- */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -178,7 +170,7 @@ int main (int argc, char **argv)
 			case 'm':
 				routine_wrap_set_option(wrap_opt_model, argv[++i]);
 				break;
-			case 'c':
+			case 'V':
 				routine_wrap_set_option(wrap_opt_version, argv[++i]);
 				break;
 			default:
