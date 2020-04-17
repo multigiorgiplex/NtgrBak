@@ -22,8 +22,8 @@
 #define KEY_STR			"NtgrBak"
 #define USAGE	\
 "Usage:\n\
-		./NtgrBak <mode> [options] <input_file.txt >output_file.bin\n\
-		./NtgrBak <mode> [options] -i input_file.txt -o output_file.bin\n\
+		./NtgrBak <mode> [options] <input_file.bin >output_file.bin\n\
+		./NtgrBak <mode> [options] -i input_file.bin -o output_file.bin\n\
 Modes:\n\
 		X	eXtracts the configuration internal NVRAM image to the output file\n\
 		D	Decripts without extracting the configuration\n\
@@ -38,6 +38,8 @@ Options:\n\
 		Wrap mode:\n\
 		-m[odel]:	Specify the router model. (eg. \"WNDR4500v2\")\n\
 		-V[ersion]:	Specify the configuration version. (eg. \"1\")\n"
+
+//TODO: Get wrap model based on configuration (system_name key)
 
 /* Typdefs */
 struct main_opts {
