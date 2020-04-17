@@ -55,5 +55,4 @@ dkms.conf
 .cproject
 .project
 /.settings/
-/Debug/
-/Release/
+

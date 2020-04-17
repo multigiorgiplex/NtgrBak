@@ -12,9 +12,9 @@ The encryption process has been successfully tested with this Netgear Routers mo
 - (none)
 
 ## Building
-In order to build the utility, OpenSSL's libcrypto headers must be included in the build
+In order to build this utility, use make. OpenSSL's libcrypto headers must be installed in the system.
 ```
-$ gcc -lcrypto -o NtgrBak NtgrBak.c
+$ make NtgrBak
 ```
 ## Running
 The input data and the output result is provided to the utility via console redirection.
