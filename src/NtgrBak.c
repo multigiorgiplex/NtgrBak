@@ -11,10 +11,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <endian.h>
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
+#include "config.h"
 
 /* Defines */
 #define BUFFER_SIZE		(0x20000)
@@ -85,25 +85,6 @@ void			routine_wrap_set_option		(wrap_options, void *);
 // Decryption/Encryption
 int				run_codec					(unsigned char*, int, unsigned char*, int*, unsigned char);
 void			generate_des_key			(unsigned char*);
-
-// Header - Magic
-unsigned int	generate_magic				(unsigned char*);
-unsigned int	get_magic					(unsigned char*);
-void			set_magic					(unsigned char*, unsigned int);
-const char *	get_model					(unsigned int);
-
-// Header - Checksum
-unsigned int	calculate_checksum			(unsigned char*, int);
-void			generate_checksum			(unsigned char*, int);
-int				verify_checksum				(unsigned char*, int);
-
-// Header - Version
-unsigned int	get_config_version			(unsigned char*);
-void			set_config_version			(unsigned char*, int);
-
-// Header - Length
-unsigned int	get_config_length			(unsigned char*);
-void			set_config_length			(unsigned char*, int);
 
 // Misc
 void			console_output				(char*, ...);
@@ -464,164 +445,4 @@ void generate_des_key (unsigned char *out_key)
 	out_key[5] = (unsigned char) (key_64b >> 21);
 	out_key[6] = (unsigned char) (key_64b >> 14);
 	out_key[7] = (unsigned char) (key_64b >> 7);
-}
-
-int verify_checksum (unsigned char* buffer, int buffer_len)
-{
-	return calculate_checksum(buffer, buffer_len) == 0 ? 1 : 0;
-}
-
-void generate_checksum (unsigned char* buffer, int buffer_len)
-{
-	unsigned int cksum;
-	uint32_t cksum_be;
-
-
-	if (!buffer || buffer_len < 0)
-		return;
-
-	/* Set checksum region at 0 */
-	cksum = 0;
-	memcpy (buffer +8, &cksum, 4);
-
-	/* Calculate the actual checksum */
-	cksum = calculate_checksum (buffer, buffer_len);
-	cksum_be = htobe32 ((uint32_t) cksum);
-
-	/* Apply the checksum */
-	memcpy (buffer +8, &cksum_be, 4);
-}
-
-unsigned int calculate_checksum (unsigned char* buffer, int buffer_len)
-{
-	unsigned int cksum, ret;
-	unsigned short * buffer_w;
-
-	if (!buffer || buffer_len <= 0)
-		return 0xFFFFFFFF;
-
-	buffer_w = (unsigned short *) buffer;
-	if (buffer_len % 2)
-		cksum = (unsigned int) *(buffer + (--buffer_len));
-	else
-		cksum = 0;
-
-	while (buffer_len > 0)
-	{
-		cksum += (unsigned int) *buffer_w++;
-		buffer_len -= 2;
-	}
-
-	ret = cksum & 0xFFFF;
-	ret += cksum >> 16;
-	ret += ret >> 16;
-	return (((unsigned int) be16toh (~ret)) & 0xFFFF);
-}
-
-unsigned int generate_magic (unsigned char *router_name)
-{
-	unsigned int magic;
-	unsigned char buffer[16+1];	//Accommodate for \0 byte
-	unsigned int * buffer_p;
-
-	if (!router_name)
-		return 0;
-
-	memset (buffer, 0x00, 16);
-	strncpy ((char *)buffer, (char *)router_name, 16);
-
-	buffer_p = (unsigned int *) buffer;
-	magic  = *(buffer_p++);
-	magic ^= *(buffer_p++);
-	magic ^= *(buffer_p++);
-	magic ^= *(buffer_p);
-
-	return ((unsigned int) magic);
-}
-
-unsigned int get_magic (unsigned char *config_buffer)
-{
-	if (!config_buffer)
-		return 0;
-
-	return (unsigned int) be32toh (*((uint32_t *)(config_buffer)));
-}
-
-void set_magic (unsigned char *config_buffer, unsigned int magic)
-{
-	uint32_t magic_be;
-
-	if (!config_buffer)
-		return;
-
-	magic_be = htobe32 ((uint32_t) magic);
-	memcpy (config_buffer, &magic_be, 4);
-}
-
-const char * get_model (unsigned int magic)
-{
-	int i;
-
-	enum {
-		UNKNOWN = 0,
-		WNDR4500v2,
-
-		models
-	};
-
-	const char *MODELS_s[] = {
-		"unknown",
-		"WNDR4500v2"
-	};
-
-	const unsigned int MODELS_m[] = {
-		0,
-		0x62744915
-	};
-
-	for (i = 0; i < models; i++)
-	{
-		if (MODELS_m[i] == magic)
-			return MODELS_s[i];
-	}
-
-	return MODELS_s[UNKNOWN];
-}
-
-unsigned int get_config_length (unsigned char *config_buffer)
-{
-	if (!config_buffer)
-		return 0;
-
-	return (unsigned int) be32toh (*((uint32_t *)(config_buffer +4)));
-}
-
-void set_config_length (unsigned char *config_buffer, int len)
-{
-	uint32_t len_be;
-
-	if (!config_buffer || len < 0)
-		return;
-
-	len_be = htobe32 ((uint32_t) len);
-	memcpy (config_buffer +4, &len_be, 4);
-}
-
-unsigned int get_config_version (unsigned char *config_buffer)
-{
-	if (!config_buffer)
-		return 0;
-
-	return (unsigned int) be32toh (*((uint32_t *)(config_buffer +12)));
-}
-
-void set_config_version (unsigned char *config_buffer, int ver)
-{
-	uint32_t ver_be;
-
-	if (!config_buffer || ver < 0)
-		return;
-
-	ver_be = htobe32 ((uint32_t) ver);
-	memcpy (config_buffer +12, &ver_be, 4);
 }
