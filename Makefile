@@ -5,6 +5,7 @@ TARGETS=$(TARGET_NTGRBAK)
 LIBS_NTGRBAK=-lcrypto
 OBJS_NTGRBAK=\
 src/config.o\
+src/crypt.o\
 src/NtgrBak.o
 
 CFLAGS_DEFAULT=-Wall
