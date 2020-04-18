@@ -241,7 +241,7 @@ int routine_extract (unsigned char* buffer_input, int buffer_input_len, unsigned
 {
 	unsigned char buffer_dec[BUFFER_SIZE];
 	int buffer_dec_len;
-	unsigned int payload_size;
+	unsigned int payload_size, magic;
 
 	/* First decrypt the data */
 	if (routine_decrypt (buffer_input, buffer_input_len, buffer_dec, &buffer_dec_len))
@@ -266,8 +266,10 @@ int routine_extract (unsigned char* buffer_input, int buffer_input_len, unsigned
 	/* Print info */
 	if (main_opt.main_set_verbose)
 	{
-		console_output ("Router Model: %s\n", get_model(get_magic(buffer_dec)));
+		magic = get_magic(buffer_dec);
+		console_output ("Router Model: %s\n", get_model(magic));
 		console_output ("Configuration version: %u\n", get_config_version(buffer_dec));
+		console_output ("Configuration magic: 0x%08x\n", magic);
 	}
 
 	/* Check lengths */
