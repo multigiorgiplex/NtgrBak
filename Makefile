@@ -1,12 +1,17 @@
 CC=gcc
 
 TARGET_NTGRBAK=NtgrBak
-TARGETS=$(TARGET_NTGRBAK)
+TARGET_NVEX=NVEx
+TARGETS=$(TARGET_NTGRBAK) $(TARGET_NVEX)
 LIBS_NTGRBAK=-lcrypto
+LIBS_NVEX=
 OBJS_NTGRBAK=\
 src/config.o\
 src/crypt.o\
 src/NtgrBak.o
+OBJS_NVEX=\
+src/nvram.o\
+src/NVEx.o
 
 CFLAGS_DEFAULT=-Wall
 CFLAGS_DEBUG=-g3
@@ -28,6 +33,9 @@ all: $(TARGETS)
 
 $(TARGET_NTGRBAK): $(OBJS_NTGRBAK)
 	$(CC) $(LDFLAGS) $(LIBS_NTGRBAK) -o $(TARGET_NTGRBAK) $(OBJS_NTGRBAK)
+
+$(TARGET_NVEX): $(OBJS_NVEX)
+	$(CC) $(LDFLAGS) $(LIBS_NVEX) -o $(TARGET_NVEX) $(OBJS_NVEX)
 
 %.o: %.c %.h
 	$(CC) -c $< $(CFLAGS) $(LIBS) -o $@

@@ -1,50 +1,56 @@
 # NtgrBak
-Netgear configuration backup decrypter and encrypter
+Netgear configuration backup utilities for manual edit
 ## Description
-NtgrBak is a small utility that can decrypt and encrypt Netgear configuration backup files.
+NtgrBak is a little project that aims to being able to manually edit and reupload the router configuration.
+It comes with two separate small utilities:
+- NtgrBak
+- NVEx
 
-The final goal is being able to manually edit and reupload the router configuration. **(CAREFUL! Not tested yet!)**
+*NtgrBak* can import and export the router internal NVRAM image to and from the configuration backup file.
+*NVEx* can import and export editable text file to and from the router internal NVRAM image.
 
-The decryption process has been successfully tested with this Netgear Routers models:
+The extraction process has been successfully tested with this Netgear Routers models:
 - WNDR4500v2
 
-The encryption process has been successfully tested with this Netgear Routers models:
-- (none)
+The wrap process has been successfully tested with this Netgear Routers models:
+- WNDR4500v2
 
 ## Building
 In order to build this utility, use make. OpenSSL's libcrypto headers must be installed in the system.
 ```
-$ make NtgrBak
+$ make
 ```
 ## Running
-The input data and the output result is provided to the utility via console redirection.
+### Workflow example
+The first thing to do is to extract the RAW NVRAM image from the router configuration file.
 ```
-Usage:
-		./NtgrBak <mode> [options] <input_file.txt >output_file.bin
-		./NtgrBak <mode> [options] -i input_file.txt -o output_file.bin
-Modes:
-		X	eXtracts the configuration internal NVRAM image to the output file
-		D	Decripts without extracting the configuration
-		W	Wraps a NVRAM image to the output file with the info supplied by options
-Options:
-		General:
-		-v[erbose]:	Dumps some informations
-		-f[orce]:	Avoid checks
-		-i[nput]:	Specify the input file path. Otherwise stdin is used
-		-o[utput]:	Specify the output file path. Otherwise stdout is used
-
-		Wrap mode:
-		-m[odel]:	Specify the router model. (eg. "WNDR4500v2")
-		-V[ersion]:	Specify the configuration version. (eg. "1")
-
+$ ./NtgrBak X -i src.cfg -o src.cfg.nvram
 ```
-The output result can be examined easily with
+Then the text editable string file must be extracted from the RAW NVRAM image.
 ```
-$ xxd output_file.bin | less
+$ ./NVEx X -i src.cfg.nvram -o src.cfg.str
 ```
-or
+At this point the output file `src.cfg.str` can be easily edited. **CAREFUL! This is an easy way to brick your router!**
+To reverse the workflow, the first thing to do is generate a RAW NVRAM image from the text file.
 ```
-$ strings output_file.bin | less
+$ ./NVEx W -i mod.cfg.str -o mod.cfg.nvram
+```
+**NOTE:** The input file `mod.cfg.str` must be ASCII encoded with new-lines ('\n') only.
+The last operation to do is to generate an uploadable router configuration file.
+```
+$ ./NtgrBak W -m WNDR4500v2 -V 1 -i mod.cfg.nvram -o mod.cfg
+```
+The options `-m WNDR4500v2` and `-V 1` are mandatory because the router model (`-m`) and configuration version (`-V`) are needed to generate the configuration file.
+The configuration version is usually "1" but can be determined by looking at the output info of the `src.cfg` unwrap procedure (via running *NtgrBak* with the `-v` option).
+The router model can be easily guessed. To be sure compare the "Configuration magic" value (obtained by running *NtgrBak* with the `-v` option) between the original `src.cgf` file and the `mod.cfg`. The magic number must be the same.
+The output file `mod.cfg` can now be uploaded to the router via it's web interface.
+### Fast approach
+To speed the operation the intermediate RAW NVRAM image file can be directly passed to the sourcing utility via output redirection.
+```
+$ ./NtgrBak X -i src.cfg | ./NVEx X -o src.cfg.str
+```
+```
+$ ./NVEx W -i mod.cfg.str | ./NtgrBak W -o mod.cfg
 ```
 ## Thanks
 Thanks to Roberto Paleari's early work (http://roberto.greyhats.it/) (https://www.exploit-db.com/exploits/24916)
